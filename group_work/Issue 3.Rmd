@@ -152,4 +152,33 @@ ggplot(CLTL, aes(x=Year, y=Mean, col=Insolvency)) +
 
 
 ```
+generate a Dummy for Insolvency
+```{r Dummy}
+orbis_de$insolvent <- 0
+orbis_de$insolvent <- orbis_de$bvdid %in% insol_filers$bvdid
+orbis_de$insolvent [orbis_de$insolvent==TRUE] <- 1
+orbis_de$insolvent [orbis_de$insolvent==FALSE] <- 0
+```
+Gerate different ratios
+```{r Ratios}
+orbis_de$gross_profit <- (orbis_de$turn-orbis_de$cost)/orbis_de$turn
+orbis_de$ROA <- orbis_de$pl/orbis_de$toas
+orbis_de$ROE <- orbis_de$shfd/orbis_de$toas
+orbis_de$profit_employee <- orbis_de$pl/orbis_de$empl
+orbis_de$current_ratio <- orbis_de$cuas/orbis_de$culi
+orbis_de$debt <- (orbis_de$culi + orbis_de$ncli)/orbis_de$toas
+orbis_de$leverage <- orbis_de$shfd/(orbis_de$culi + orbis_de$ncli)
+orbis_de$growth_assets <- (orbis_de$toas-lag(orbis_de$toas))/lag(orbis_de$toas)
+orbis_de$size <- log(orbis_de$toas)
 
+```
+Profit Margin
+```{r ProftiMargin}
+orbis_de$gross_profit <- (orbis_de$turn-orbis_de$cost)/orbis_de$turn
+t.test(orbis_de$gross_profit[orbis_de$insolvent==1],orbis_de$gross_profit[orbis_de$insolvent==0])
+
+#Irgendwas stimmt bei dem Plot noch nicht ganz...
+ggplot(orbis_de[!is.na(orbis_de$gross_profit),], aes(x=year)) +
+ geom_line(aes(y=gross_profit, color=insolvent)) +
+ ggtitle("Profit Margin") +
+ theme(plot.title = element_text(hjust = 0.5))
