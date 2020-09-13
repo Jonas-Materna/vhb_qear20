@@ -152,4 +152,68 @@ ggplot(CLTL, aes(x=Year, y=Mean, col=Insolvency)) +
 
 
 ```
+generate a Dummy for Insolvency
+```{r Dummy}
+orbis_de$insolvent <- 0
+orbis_de$insolvent <- orbis_de$bvdid %in% insol_filers$bvdid
+orbis_de$insolvent [orbis_de$insolvent==TRUE] <- 1
+orbis_de$insolvent [orbis_de$insolvent==FALSE] <- 0
+```
+Table 1
+```{r Table1}
+orbis_de%>%
+  tab_cells(fias, cuas, stok, debt, ocas, cash, toas, shfd, ncli, culi, loan, cred, ocli, tshf, empl, opre, turn, cost, fipl, taxa, exex, pl)%>%
+  tab_cols(insolvent)%>%
+  tab_stat_mean_sd_n()%>%
+  tab_last_sig_means(subtable_marks = "both") %>% 
+  tab_pivot() %>% 
+  set_caption("Table with summary statistics and significance marks.")
 
+```
+Table by size
+```{r Table2}
+orbis_de%>%
+  tab_cells(debt,cash,cuas, culi, cred, pl)%>%
+  tab_cols(insolvent)%>%
+  tab_rows(category_of_company)%>%
+  tab_stat_mean()%>%
+  tab_last_sig_means(subtable_marks = "both") %>% 
+  tab_pivot() %>% 
+  set_caption("Table with summary statistics and significance marks.")
+
+```
+Gerate different ratios
+```{r Ratios}
+orbis_de$gross_profit <- (orbis_de$turn-orbis_de$cost)/orbis_de$turn
+orbis_de$ROA <- orbis_de$pl/orbis_de$toas
+orbis_de$ROE <- orbis_de$shfd/orbis_de$toas
+orbis_de$profit_employee <- orbis_de$pl/orbis_de$empl
+orbis_de$current_ratio <- orbis_de$cuas/orbis_de$culi
+orbis_de$debt_ratio <- (orbis_de$culi + orbis_de$ncli)/orbis_de$toas
+orbis_de$leverage <- orbis_de$shfd/(orbis_de$culi + orbis_de$ncli)
+orbis_de$growth_assets <- (orbis_de$toas-lag(orbis_de$toas))/lag(orbis_de$toas)
+orbis_de$size <- log(orbis_de$toas)
+
+```
+Table Ratios
+```{r Table3}
+orbis_de%>%
+  tab_cells(gross_profit,ROA,ROE,profit_employee,current_ratio,debt_ratio, leverage,growth_assets,size)%>%
+  tab_cols(insolvent)%>%
+  tab_stat_mean_sd_n()%>%
+  tab_last_sig_means(subtable_marks = "both") %>% 
+  tab_pivot() %>% 
+  set_caption("Table with summary statistics and significance marks.")
+
+```
+Profit Margin
+```{r ProftiMargin}
+orbis_de$gross_profit <- (orbis_de$turn-orbis_de$cost)/orbis_de$turn
+t.test(orbis_de$gross_profit[orbis_de$insolvent==1],orbis_de$gross_profit[orbis_de$insolvent==0])
+
+#Irgendwas stimmt bei dem Plot noch nicht ganz...
+ggplot(orbis_de[!is.na(orbis_de$gross_profit),], aes(x=year)) +
+ geom_line(aes(y=gross_profit, color=insolvent)) +
+ ggtitle("Profit Margin") +
+ theme(plot.title = element_text(hjust = 0.5))
+```
