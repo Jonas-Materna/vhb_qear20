@@ -1,5 +1,4 @@
 # VHB QEAR 20 - Joachim Gassen
-# See LICENSE File for details
 
 # This is a small simulation to show the effect of self-selections introducing
 # an implicit collider variable on which you (have to) condition your 
